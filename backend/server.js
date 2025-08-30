@@ -11,7 +11,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: "https://vakeelsetu-d2b9ztl7y-abhinavs-projects-5c325c75.vercel.app",
     credentials: true,
   },
 });
