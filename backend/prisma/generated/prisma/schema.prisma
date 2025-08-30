@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Define Role Enum for consistency
+enum UserRole {
+  CLIENT
+  LAWYER
+}
+
+model User {
+  id              Int       @id @default(autoincrement())
+  email           String    @unique
+  username        String    @unique
+  password        String
+  profile         String? // URL to profile picture
+  refreshtoken    String? // Store refresh token
+  isEmailVerified Boolean   @default(false)
+  emailOtp        String?
+  emailOtpExpiry  DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  role            UserRole  @default(CLIENT)
+
+  latitude      Float?
+  longitude     Float?
+  lawyerHistory Int[]  @default([]) // Stores IDs of lawyers a client has chatted with
+
+  lawyerDetails LawyerDetails?
+
+  clientCalls CallHistory[] @relation("ClientCalls")
+  lawyerCalls CallHistory[] @relation("LawyerCalls")
+
+  sentChats     Chat[] @relation("SentChats")
+  receivedChats Chat[] @relation("ReceivedChats")
+
+  chatDeletions ChatDeletion[]
+  chatReads     ChatRead[]
+}
+
+model LawyerDetails {
+  id             Int     @id @default(autoincrement())
+  userId         Int     @unique
+  specialization String? // e.g., "Family Law", "Criminal Law"
+  experience     Int? // Years of experience
+  fees           Float? // Consultation fees
+  availability   Boolean @default(false) // Current availability status
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Chat {
+  id         Int      @id @default(autoincrement())
+  senderId   Int
+  receiverId Int
+  message    String?
+  fileUrl    String? // URL to file (image, document) if supported
+  createdAt  DateTime @default(now())
+
+  sender   User @relation("SentChats", fields: [senderId], references: [id])
+  receiver User @relation("ReceivedChats", fields: [receiverId], references: [id])
+
+  deletedBy ChatDeletion[]
+  reads     ChatRead[]
+}
+
+model ChatDeletion {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  chatId    Int
+  deletedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  chat Chat @relation(fields: [chatId], references: [id])
+
+  @@unique([userId, chatId]) // A user can only delete a chat with a specific other user once
+}
+
+model ChatRead {
+  id     Int      @id @default(autoincrement())
+  chatId Int
+  userId Int // The ID of the user who read the message
+  seenAt DateTime @default(now())
+
+  chat Chat @relation(fields: [chatId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([chatId, userId]) // Ensures a chat message is only marked seen once by a user
+}
+
+model Call {
+  id        Int      @id @default(autoincrement())
+  clientId  Int
+  lawyerId  Int
+  status    String // e.g., "initiated", "accepted", "rejected", "ended"
+  createdAt DateTime @default(now())
+}
+
+model CallHistory {
+  id        Int       @id @default(autoincrement())
+  clientId  Int
+  lawyerId  Int
+  callStart DateTime  @default(now())
+  callEnd   DateTime?
+  callUrl   String? // URL for call recording or joining
+  deleted   Boolean   @default(false)
+
+  client User @relation("ClientCalls", fields: [clientId], references: [id])
+  lawyer User @relation("LawyerCalls", fields: [lawyerId], references: [id])
+}
