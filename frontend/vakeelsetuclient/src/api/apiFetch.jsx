@@ -1,6 +1,6 @@
 export async function apiFetch(url, options = {}) {
   // Base URL for all API calls, read from environment variables
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://vsbefe.onrender.com/api';
 
   // Construct the full URL for the request
   const absoluteUrl = `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
