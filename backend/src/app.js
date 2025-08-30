@@ -7,7 +7,7 @@ import errorHandler from './middleware/errorHandler.middleware.js';
 const app = express();
 
 app.use(cors({
-  origin: 'https://vsbefe-zcna.vercel.app/',
+  origin: 'https://vsbefe-zcna.vercel.app',
   methods: ['GET','POST','PUT','DELETE'],
   credentials: true
 }));
