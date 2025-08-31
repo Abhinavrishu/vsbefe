@@ -16,7 +16,7 @@ app.use(cookieParser());
 // CORS (handles preflight automatically)
 app.use(
   cors({
-    origin: "https://vsbefe-zcna.vercel.app",
+    origin: "https://vsbefe-zcna-ccczusejx-abhinavs-projects-5c325c75.vercel.app",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
