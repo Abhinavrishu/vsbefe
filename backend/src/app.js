@@ -16,7 +16,7 @@ app.use(cookieParser());
 // CORS (handles preflight automatically)
 app.use(
   cors({
-    origin: "https://vsbefe-zcna-git-main-abhinavs-projects-5c325c75.vercel.app",
+    origin: "https://vsbefe-zcna-git-main-abhinavs-projects-5c325c75.vercel.app",//"https://vsbefe-zcna-git-main-abhinavs-projects-5c325c75.vercel.app",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -24,10 +24,11 @@ app.use(
 
 // Debug request origins only for /api/* routes
 const API_ROUTE_REGEX = /^\/api\/.*/;
-app.use(API_ROUTE_REGEX, (req, res, next) => {
-  console.log("🌐 API Request Origin:", req.headers.origin);
+app.use(API_ROUTE_REGEX,(req, res, next) => {
+  console.log(`📡 ${req.method} ${req.originalUrl} from ${req.headers.origin}`);
   next();
 });
+
 
 // Routes
 app.use(mainRouter);

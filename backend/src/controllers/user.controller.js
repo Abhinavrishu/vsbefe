@@ -6,7 +6,6 @@ import { uploadOnCloudinary } from '../services/cloudinary.service.js';
 
 const UserRole = { CLIENT: "CLIENT", LAWYER: "LAWYER" };
 
-// GET /api/users/me - Get current user's profile
 export const getUserProfile = async (req, res, next) => {
   const userId = req.user?.id;
   if (!userId) {
@@ -27,7 +26,6 @@ export const getUserProfile = async (req, res, next) => {
   }
 };
 
-// PUT /api/users/password - Update user's password
 export const updatePassword = async (req, res, next) => {
   const { currentPassword, newPassword } = req.body;
   if (!currentPassword || !newPassword) {
@@ -53,7 +51,6 @@ export const updatePassword = async (req, res, next) => {
   }
 };
 
-// PUT /api/users/profile-image - Update user's profile image
 export const updateProfileImage = async (req, res, next) => {
   const profileFile = req.file?.path;
   if (!profileFile) {
@@ -74,7 +71,6 @@ export const updateProfileImage = async (req, res, next) => {
   }
 };
 
-// GET /api/users/lawyers - Get a list of all available lawyers
 export const getAllAvailableLawyers = async (req, res, next) => {
   try {
     const lawyers = await prisma.user.findMany({
@@ -90,7 +86,6 @@ export const getAllAvailableLawyers = async (req, res, next) => {
   }
 };
 
-// GET /api/users/lawyers/:id - Get details for a specific lawyer
 export const getLawyerDetails = async (req, res, next) => {
   const lawyerId = parseInt(req.params.id);
   if (isNaN(lawyerId)) {
@@ -110,8 +105,6 @@ export const getLawyerDetails = async (req, res, next) => {
     return next(new ApiError(500, 'Failed to fetch lawyer details.'));
   }
 };
-
-// --- LAWYER-SPECIFIC UPDATE CONTROLLERS ---
 
 const ensureIsLawyer = async (userId) => {
   const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -180,5 +173,32 @@ export const updateLawyerAvailability = async (req, res, next) => {
     return res.status(200).json(new ApiResponse(200, updatedDetails, 'Availability updated successfully.'));
   } catch (error) {
     return next(error);
+  }
+};
+export const getLawyerDistance = async (req, res, next) => {
+  const userId = req.user.id;
+  const userRole = req.user.role;
+  const { latitude, longitude } = req.body;
+
+  if (userRole !== "LAWYER") {
+    return res.status(403).json({ success: false, message: "Only lawyers can update location" });
+  }
+
+  try {
+    const updatedLawyer = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        latitude,
+        longitude,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: updatedLawyer,
+      message: "Location updated successfully",
+    });
+  } catch (error) {
+    return next(new ApiError(500, "Failed to update location"));
   }
 };

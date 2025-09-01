@@ -12,6 +12,7 @@ import {
 } from '../controllers/user.controller.js';
 import authMiddleware from '../middleware/auth.middleware.js';
 import { upload } from '../middleware/multer.middleware.js';
+import { getLawyerDistance } from '../controllers/user.controller.js';
 
 const router = express.Router();
 
@@ -31,5 +32,5 @@ router.put('/lawyer/fees', updateLawyerFees);
 router.put('/lawyer/specialization', updateLawyerSpecialization);
 router.put('/lawyer/experience', updateLawyerExperience);
 router.put('/lawyer/availability', updateLawyerAvailability);
-
+router.put('/lawyerLocation',getLawyerDistance)
 export default router;

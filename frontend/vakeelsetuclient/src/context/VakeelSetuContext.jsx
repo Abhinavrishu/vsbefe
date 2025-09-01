@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect, useMemo } from "react";
 import { apiFetch } from "@/api/apiFetch"; // This import is crucial
 
+// 1️⃣ Get client/browser location
+
 // Create the context
 export const VakeelSetuContext = createContext();
 
@@ -18,8 +20,9 @@ export function VakeelSetuProvider({ children }) {
       // If parsing fails, return null
       return null;
     }
-  });
+  });  
 
+  
   // State to track if we are still loading the initial user state
   const [isLoading, setIsLoading] = useState(true);
 
@@ -35,21 +38,65 @@ export function VakeelSetuProvider({ children }) {
   }, [user]);
 
   // --- API Functions ---
+  
+async function getClientLocation() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject("Geolocation not supported");
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      },
+      (error) => reject(error)
+    );
+  });
+}
 
-  const login = async (credentials) => {
+
+
+// 2️⃣ Login API
+const login = async (credentials) => {
+  try {
     const res = await apiFetch(`/login`, {
       method: "POST",
-       credentials:"include",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(credentials),
     });
+
     const data = await res.json();
-    if (res.ok) {
-      setUserState(data.data.user);
-      return { success: true, user: data.data.user };
+    if (!res.ok) {
+      return { success: false, message: data.message };
     }
-    return { success: false, message: data.message };
-  };
+
+    setUserState(data.data.user);
+
+    // 🔥 If user is lawyer, update location separately
+    if (data.data.user.role === "LAWYER") {
+      try {
+        const { latitude, longitude } = await getClientLocation();
+
+        await apiFetch(`/lawyerLocation`, {
+          method: "PUT",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ latitude, longitude }),
+        });
+      } catch (locErr) {
+        console.warn("Location update failed:", locErr);
+      }
+    }
+
+    return { success: true, user: data.data.user };
+  } catch (error) {
+    console.error("Login error:", error);
+    return { success: false, message: "Something went wrong" };
+  }
+};
 
   const register = async (formData) => {
     const res = await apiFetch(`/register`, {
